@@ -5,36 +5,50 @@ import { ProductDetailsView, ProductListView } from "../views/organisms/productV
 import { Layout } from "./layoutController.js";
 
 export const ProductPage = async () => {
-    isLoggedIn();
-    const { category = 'vand-og-vandrensning', product } = Object.fromEntries(new URLSearchParams(location.search));
-    let html = '';
-    if (!product) {
-        html = await ProductList();
-    } else {
-        html = await ProductDetails(product);
-    }
-    return html;
-}
+  isLoggedIn();
 
-export const ProductList = async () => {
-    const { category = 'vand-og-vandrensning' } = Object.fromEntries(new URLSearchParams(location.search));
-    const data = await getList(category);
-    const formattedProducts = data.map(item => ({
-        ...item,
-        stockText: item.stock ? 'På lager' : 'Forventes på lager indenfor få uger',
-        stockClass: item.stock ? 'text-green-600' : 'text-red-600'
-    }));
-    const html = ProductListView(formattedProducts, category);
-    const layout = await Layout('Produkter', html);
-    // Attach click events to product links
-    html.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            location.hash = `/?category=${category}&product=${link.href.split('product=')[1]}`;
-        });
+  // Parse parameters after '#/'
+  const params = new URLSearchParams(location.hash.split('?')[1] || '');
+  const { category = 'vand-og-vandrensning', product } = Object.fromEntries(params);
+
+  let html = '';
+
+  if (!product) {
+    html = await ProductList(category);
+  } else {
+    html = await ProductDetails(product);
+  }
+
+  return html;
+};
+
+
+export const ProductList = async (category) => {
+  console.log('Product list:', category);
+  console.log(`Selected category: ${category.category}`);
+
+  const data = await getList(category);
+
+  const formattedProducts = data.map(item => ({
+    ...item,
+    stockText: item.stock ? 'På lager' : 'Forventes på lager indenfor få uger',
+    stockClass: item.stock ? 'text-green-600' : 'text-red-600'
+  }));
+
+  const html = ProductListView(formattedProducts, category);
+  const layout = await Layout('Produkter', html);
+
+  html.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      location.hash = `/?category=${category.category}&product=${link.href.split('product=')[1]}`;
     });
-    return layout;
-}
+  });
+
+  return layout;
+};
+
+
 
 export const ProductDetails = async (product) => {
     const data = await getDetails(product);

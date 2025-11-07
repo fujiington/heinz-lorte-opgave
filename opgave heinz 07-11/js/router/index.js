@@ -8,7 +8,9 @@ export async function router(routes, sel = '#container') {
   const render = async () => {
     // Use only the path part of the hash (ignore query string) so routes like
     // '#/?category=foo' map to '/' and don't cause mismatches.
+    console.log(location.hash);
     const raw = location.hash.slice(1) || '/';
+    console.log({raw});
     const key = raw.split('?')[0] || '/';
 
     const v = routes[key] ?? routes['*'] ?? '';   
